@@ -9,7 +9,7 @@ class Mp3ConverterApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'MP4 轉 MP3',
+      title: '影片轉 MP3',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF6750A4)),
         useMaterial3: true,

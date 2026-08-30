@@ -3,13 +3,22 @@ import 'package:mp3_converter/src/utils/file_name_utils.dart';
 
 void main() {
   group('defaultOutputName', () {
-    test('removes the MP4 extension case-insensitively', () {
+    test('removes supported video extensions case-insensitively', () {
       expect(defaultOutputName('My Video.MP4'), 'My Video');
+      expect(defaultOutputName('My Video.MkV'), 'My Video');
+      expect(defaultOutputName('My Video.webm'), 'My Video');
     });
 
-    test('keeps names without an MP4 extension', () {
-      expect(defaultOutputName('recording.mov'), 'recording.mov');
+    test('keeps names with unsupported extensions', () {
+      expect(defaultOutputName('recording.txt'), 'recording.txt');
     });
+  });
+
+  test('recognizes supported video paths', () {
+    expect(isSupportedVideoPath('/videos/movie.MOV'), isTrue);
+    expect(isSupportedVideoPath('/videos/movie.m2ts'), isTrue);
+    expect(isSupportedVideoPath('/videos/audio.mp3'), isFalse);
+    expect(isSupportedVideoPath('/videos/no-extension'), isFalse);
   });
 
   group('normalizeOutputName', () {

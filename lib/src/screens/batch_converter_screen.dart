@@ -51,7 +51,7 @@ class _BatchConverterScreenState extends State<BatchConverterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('批量 MP4 轉 MP3'),
+        title: const Text('批量影片轉 MP3'),
         actions: [
           if (_controller.items.any((item) => item.isFinished) &&
               !_controller.isRunning)
@@ -114,7 +114,7 @@ class _BatchHeader extends StatelessWidget {
             key: const Key('add-videos'),
             onPressed: controller.isRunning ? null : controller.addVideos,
             icon: const Icon(Icons.video_library_outlined),
-            label: const Text('選擇多個 MP4'),
+            label: const Text('選擇多個影片'),
           ),
           const SizedBox(height: 6),
           const Text(
@@ -178,7 +178,7 @@ class _EmptyState extends StatelessWidget {
             SizedBox(height: 12),
             Text('尚未加入影片'),
             SizedBox(height: 4),
-            Text('一次選擇多個 MP4，App 會依序轉換以節省手機資源。'),
+            Text('一次選擇多個影片，App 會依序轉換以節省手機資源。'),
           ],
         ),
       ),

@@ -40,7 +40,7 @@ void main() {
 
   testWidgets('initial screen cannot start conversion', (tester) async {
     await pumpScreen(tester);
-    expect(find.text('選擇 MP4 檔案'), findsOneWidget);
+    expect(find.text('選擇影片檔案'), findsOneWidget);
     expect(find.byKey(const Key('start-conversion')), findsNothing);
   });
 

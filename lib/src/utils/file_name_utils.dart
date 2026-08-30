@@ -2,10 +2,38 @@ import 'dart:io';
 
 const _invalidAndroidFileNameCharacters = r'<>:"/\|?*';
 
+const supportedVideoExtensions = <String>{
+  'mp4',
+  'mkv',
+  'mov',
+  'avi',
+  'webm',
+  'm4v',
+  '3gp',
+  'flv',
+  'wmv',
+  'mpeg',
+  'mpg',
+  'ts',
+  'mts',
+  'm2ts',
+};
+
+bool isSupportedVideoPath(String path) {
+  final separatorIndex = path.lastIndexOf('.');
+  if (separatorIndex < 0 || separatorIndex == path.length - 1) return false;
+  return supportedVideoExtensions.contains(
+    path.substring(separatorIndex + 1).toLowerCase(),
+  );
+}
+
 String defaultOutputName(String sourceName) {
   final trimmed = sourceName.trim();
-  return trimmed.toLowerCase().endsWith('.mp4')
-      ? trimmed.substring(0, trimmed.length - 4)
+  final separatorIndex = trimmed.lastIndexOf('.');
+  if (separatorIndex < 0) return trimmed;
+  final extension = trimmed.substring(separatorIndex + 1).toLowerCase();
+  return supportedVideoExtensions.contains(extension)
+      ? trimmed.substring(0, separatorIndex)
       : trimmed;
 }
 

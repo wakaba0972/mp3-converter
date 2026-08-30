@@ -21,13 +21,19 @@ void main() {
   setUp(() async {
     tempDirectory = await Directory.systemTemp.createTemp('batch_test');
     videos = [];
+    const extensions = ['mp4', 'mkv', 'webm'];
     for (var index = 1; index <= 3; index++) {
+      final extension = extensions[index - 1];
       final file = File(
-        '${tempDirectory.path}${Platform.pathSeparator}video$index.mp4',
+        '${tempDirectory.path}${Platform.pathSeparator}video$index.$extension',
       );
       await file.writeAsBytes([index]);
       videos.add(
-        SelectedVideo(path: file.path, name: 'video$index.mp4', sizeBytes: 1),
+        SelectedVideo(
+          path: file.path,
+          name: 'video$index.$extension',
+          sizeBytes: 1,
+        ),
       );
     }
     picker = FakeBatchPicker(videos);

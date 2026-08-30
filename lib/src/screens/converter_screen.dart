@@ -59,7 +59,7 @@ class _ConverterScreenState extends State<ConverterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('MP4 轉 MP3')),
+      appBar: AppBar(title: const Text('影片轉 MP3')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -83,9 +83,7 @@ class _ConverterScreenState extends State<ConverterScreen> {
                         ? null
                         : _controller.selectVideo,
                     icon: const Icon(Icons.video_file_outlined),
-                    label: Text(
-                      _controller.video == null ? '選擇 MP4 檔案' : '更換 MP4',
-                    ),
+                    label: Text(_controller.video == null ? '選擇影片檔案' : '更換影片'),
                   ),
                   if (_controller.video != null) ...[
                     const SizedBox(height: 16),

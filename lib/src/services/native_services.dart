@@ -22,12 +22,12 @@ class NativeVideoPickerService
   Future<SelectedVideo?> pickMp4() async {
     final selected = await FilePicker.pickFile(
       type: FileType.custom,
-      allowedExtensions: const ['mp4'],
+      allowedExtensions: supportedVideoExtensions.toList(),
     );
     if (selected == null) return null;
     final path = selected.path;
-    if (path == null || !path.toLowerCase().endsWith('.mp4')) {
-      throw const FileSystemException('請選擇有效的 MP4 檔案');
+    if (path == null || !isSupportedVideoPath(path)) {
+      throw const FileSystemException('請選擇支援的影片檔案');
     }
     final file = File(path);
     if (!await file.exists()) {
@@ -44,12 +44,12 @@ class NativeVideoPickerService
   Future<List<SelectedVideo>> pickMp4s() async {
     final selectedFiles = await FilePicker.pickFiles(
       type: FileType.custom,
-      allowedExtensions: const ['mp4'],
+      allowedExtensions: supportedVideoExtensions.toList(),
     );
     final videos = <SelectedVideo>[];
     for (final selected in selectedFiles) {
       final path = selected.path;
-      if (path == null || !path.toLowerCase().endsWith('.mp4')) continue;
+      if (path == null || !isSupportedVideoPath(path)) continue;
       final file = File(path);
       if (!await file.exists()) continue;
       videos.add(

@@ -1,8 +1,10 @@
-# MP4 轉 MP3 Android App — MVP 開發規格
+# 影片轉 MP3 Android App — 開發規格
 
 ## 1. 專案目標
 
-建立一款可在 Android 裝置上執行的 MP4 轉 MP3 App。使用者能從手機選擇 MP4 檔案，在裝置本機完成音訊轉換，並播放或分享產生的 MP3。
+建立一款可在 Android 裝置上執行的影片轉 MP3 App。使用者能從手機選擇常見影片檔案，在裝置本機完成音訊轉換，並播放或分享產生的 MP3。
+
+支援的來源容器包含 MP4、MKV、MOV、AVI、WebM、M4V、3GP、FLV、WMV、MPEG、MPG、TS、MTS 及 M2TS。
 
 本專案使用 Flutter 與 Dart 開發，日常功能開發不編寫 Java 或 Kotlin。影片不會上傳至伺服器，以保障隱私並避免網路依賴。
 
