@@ -106,6 +106,10 @@ class ConverterController extends ChangeNotifier {
       );
       switch (result.outcome) {
         case ConversionOutcome.success:
+          outputPath = await _outputPaths.publishOutput(
+            outputPath!,
+            outputName,
+          );
           processed = duration;
           status = ConversionStatus.completed;
         case ConversionOutcome.cancelled:

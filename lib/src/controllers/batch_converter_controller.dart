@@ -165,6 +165,10 @@ class BatchConverterController extends ChangeNotifier {
       );
       switch (result.outcome) {
         case ConversionOutcome.success:
+          item.outputPath = await _outputPaths.publishOutput(
+            item.outputPath!,
+            item.outputName,
+          );
           item
             ..processed = item.duration
             ..status = ConversionStatus.completed;

@@ -15,6 +15,7 @@ void main() {
   late List<SelectedVideo> videos;
   late FakeBatchPicker picker;
   late FakeConverter converter;
+  late FakeOutputPaths outputPaths;
   late BatchConverterController controller;
 
   setUp(() async {
@@ -31,9 +32,10 @@ void main() {
     }
     picker = FakeBatchPicker(videos);
     converter = FakeConverter();
+    outputPaths = FakeOutputPaths();
     controller = BatchConverterController(
       picker: picker,
-      outputPaths: FakeOutputPaths(),
+      outputPaths: outputPaths,
       converter: converter,
       resultActions: FakeResultActions(),
     );
@@ -69,6 +71,7 @@ void main() {
     );
     expect(controller.overallProgress, 1);
     expect(controller.successCount, 3);
+    expect(outputPaths.publishedPaths, hasLength(3));
   });
 
   test('continues with later files after one conversion fails', () async {

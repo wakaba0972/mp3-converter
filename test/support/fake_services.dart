@@ -19,9 +19,17 @@ class FakeBatchPicker implements BatchVideoPickerService {
 }
 
 class FakeOutputPaths implements OutputPathService {
+  final List<String> publishedPaths = [];
+
   @override
   Future<String> createOutputPath(String outputName) async =>
       'output/$outputName.mp3';
+
+  @override
+  Future<String> publishOutput(String temporaryPath, String outputName) async {
+    publishedPaths.add(temporaryPath);
+    return temporaryPath;
+  }
 }
 
 class FakeConverter implements AudioConversionService {

@@ -27,6 +27,7 @@ abstract interface class BatchVideoPickerService {
 
 abstract interface class OutputPathService {
   Future<String> createOutputPath(String outputName);
+  Future<String> publishOutput(String temporaryPath, String outputName);
 }
 
 abstract interface class AudioConversionService {

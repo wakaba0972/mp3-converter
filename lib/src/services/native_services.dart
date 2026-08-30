@@ -6,6 +6,7 @@ import 'package:ffmpeg_kit_flutter_new_full/ffprobe_kit.dart';
 import 'package:ffmpeg_kit_flutter_new_full/return_code.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
+import 'package:media_store_plus/media_store_plus.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -67,17 +68,82 @@ class NativeVideoPickerService
 }
 
 class NativeOutputPathService implements OutputPathService {
+  static const publicFolder = 'MP3 Converter';
+  final MediaStore _mediaStore = MediaStore();
+  bool _initialized = false;
+
   @override
   Future<String> createOutputPath(String outputName) async {
-    final root =
-        await getDownloadsDirectory() ??
-        await getExternalStorageDirectory() ??
-        await getApplicationDocumentsDirectory();
+    await _ensureInitialized();
+    final availableName = await _availablePublicName(outputName);
+    final root = await getTemporaryDirectory();
     final directory = Directory(
-      '${root.path}${Platform.pathSeparator}MP3 Converter',
+      '${root.path}${Platform.pathSeparator}conversions',
     );
     await directory.create(recursive: true);
-    return availableOutputPath(directory.path, outputName);
+    return '${directory.path}${Platform.pathSeparator}$availableName.mp3';
+  }
+
+  @override
+  Future<String> publishOutput(String temporaryPath, String outputName) async {
+    await _ensureInitialized();
+    final saved = await _mediaStore.saveFile(
+      tempFilePath: temporaryPath,
+      dirType: DirType.download,
+      dirName: DirName.download,
+    );
+    if (saved == null) {
+      throw const FileSystemException('無法將 MP3 儲存到公共 Download 資料夾');
+    }
+    final temporary = File(temporaryPath);
+    if (await temporary.exists()) await temporary.delete();
+    return saved.uri.toString();
+  }
+
+  Future<void> _ensureInitialized() async {
+    if (_initialized) return;
+    await MediaStore.ensureInitialized();
+    MediaStore.appFolder = publicFolder;
+    _initialized = true;
+    await _migrateLegacyOutputs();
+  }
+
+  Future<void> _migrateLegacyOutputs() async {
+    try {
+      final legacyRoot = await getDownloadsDirectory();
+      if (legacyRoot == null) return;
+      final legacyDirectory = Directory(
+        '${legacyRoot.path}${Platform.pathSeparator}$publicFolder',
+      );
+      if (!await legacyDirectory.exists()) return;
+      await for (final entry in legacyDirectory.list()) {
+        if (entry is! File || !entry.path.toLowerCase().endsWith('.mp3')) {
+          continue;
+        }
+        await _mediaStore.saveFile(
+          tempFilePath: entry.path,
+          dirType: DirType.download,
+          dirName: DirName.download,
+        );
+      }
+    } catch (error) {
+      debugPrint('Unable to migrate legacy MP3 outputs: $error');
+    }
+  }
+
+  Future<String> _availablePublicName(String outputName) async {
+    final normalized = normalizeOutputName(outputName);
+    var candidate = normalized;
+    var suffix = 1;
+    while (await _mediaStore.isFileExist(
+      fileName: '$candidate.mp3',
+      dirType: DirType.download,
+      dirName: DirName.download,
+    )) {
+      candidate = '$normalized ($suffix)';
+      suffix++;
+    }
+    return candidate;
   }
 }
 

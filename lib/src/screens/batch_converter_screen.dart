@@ -116,6 +116,11 @@ class _BatchHeader extends StatelessWidget {
             icon: const Icon(Icons.video_library_outlined),
             label: const Text('選擇多個 MP4'),
           ),
+          const SizedBox(height: 6),
+          const Text(
+            '輸出位置：Download/MP3 Converter',
+            textAlign: TextAlign.center,
+          ),
           if (controller.items.isNotEmpty) ...[
             const SizedBox(height: 12),
             Row(

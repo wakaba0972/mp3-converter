@@ -15,6 +15,7 @@ void main() {
   late FakePicker picker;
   late FakeConverter converter;
   late FakeResultActions actions;
+  late FakeOutputPaths outputPaths;
   late ConverterController controller;
 
   setUp(() async {
@@ -28,9 +29,10 @@ void main() {
     );
     converter = FakeConverter();
     actions = FakeResultActions();
+    outputPaths = FakeOutputPaths();
     controller = ConverterController(
       picker: picker,
-      outputPaths: FakeOutputPaths(),
+      outputPaths: outputPaths,
       converter: converter,
       resultActions: actions,
     );
@@ -57,6 +59,7 @@ void main() {
     expect(controller.progress, 1);
     expect(converter.receivedQuality, AudioQuality.high);
     expect(controller.outputPath, 'output/sample.mp3');
+    expect(outputPaths.publishedPaths, ['output/sample.mp3']);
     await controller.openResult();
     await controller.shareResult();
     expect(actions.opened, controller.outputPath);
