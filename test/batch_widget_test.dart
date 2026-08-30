@@ -53,6 +53,7 @@ void main() {
     expect(find.text('尚未加入影片'), findsOneWidget);
     expect(find.text('選擇多個影片'), findsOneWidget);
     expect(find.text('輸出位置：Download/MP3 Converter'), findsOneWidget);
+    expect(find.byKey(const Key('toggle-theme')), findsOneWidget);
     expect(find.byKey(const Key('start-batch')), findsNothing);
   });
 

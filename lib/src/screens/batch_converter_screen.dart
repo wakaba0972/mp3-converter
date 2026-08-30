@@ -9,9 +9,16 @@ import '../utils/file_name_utils.dart';
 import '../utils/formatters.dart';
 
 class BatchConverterScreen extends StatefulWidget {
-  const BatchConverterScreen({super.key, this.controller});
+  const BatchConverterScreen({
+    super.key,
+    this.controller,
+    this.isDarkMode = false,
+    this.onToggleTheme,
+  });
 
   final BatchConverterController? controller;
+  final bool isDarkMode;
+  final Future<void> Function()? onToggleTheme;
 
   @override
   State<BatchConverterScreen> createState() => _BatchConverterScreenState();
@@ -53,6 +60,14 @@ class _BatchConverterScreenState extends State<BatchConverterScreen> {
       appBar: AppBar(
         title: const Text('批量影片轉 MP3'),
         actions: [
+          IconButton(
+            key: const Key('toggle-theme'),
+            onPressed: widget.onToggleTheme == null
+                ? null
+                : () => _toggleTheme(context),
+            tooltip: widget.isDarkMode ? '切換為淺色模式' : '切換為暗黑模式',
+            icon: Icon(widget.isDarkMode ? Icons.light_mode : Icons.dark_mode),
+          ),
           if (_controller.items.any((item) => item.isFinished) &&
               !_controller.isRunning)
             IconButton(
@@ -95,6 +110,16 @@ class _BatchConverterScreenState extends State<BatchConverterScreen> {
       ),
       bottomNavigationBar: _BottomActions(controller: _controller),
     );
+  }
+
+  Future<void> _toggleTheme(BuildContext context) async {
+    try {
+      await widget.onToggleTheme?.call();
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('無法儲存顯示模式設定，請稍後再試')));
+    }
   }
 }
 
