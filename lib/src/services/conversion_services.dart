@@ -21,6 +21,10 @@ abstract interface class VideoPickerService {
   Future<SelectedVideo?> pickMp4();
 }
 
+abstract interface class BatchVideoPickerService {
+  Future<List<SelectedVideo>> pickMp4s();
+}
+
 abstract interface class OutputPathService {
   Future<String> createOutputPath(String outputName);
 }

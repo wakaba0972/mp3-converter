@@ -15,7 +15,8 @@ import '../models/selected_video.dart';
 import '../utils/file_name_utils.dart';
 import 'conversion_services.dart';
 
-class NativeVideoPickerService implements VideoPickerService {
+class NativeVideoPickerService
+    implements VideoPickerService, BatchVideoPickerService {
   @override
   Future<SelectedVideo?> pickMp4() async {
     final selected = await FilePicker.pickFile(
@@ -36,6 +37,32 @@ class NativeVideoPickerService implements VideoPickerService {
       name: selected.name,
       sizeBytes: await selected.length(),
     );
+  }
+
+  @override
+  Future<List<SelectedVideo>> pickMp4s() async {
+    final selectedFiles = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: const ['mp4'],
+    );
+    final videos = <SelectedVideo>[];
+    for (final selected in selectedFiles) {
+      final path = selected.path;
+      if (path == null || !path.toLowerCase().endsWith('.mp4')) continue;
+      final file = File(path);
+      if (!await file.exists()) continue;
+      videos.add(
+        SelectedVideo(
+          path: path,
+          name: selected.name,
+          sizeBytes: await selected.length(),
+        ),
+      );
+    }
+    if (selectedFiles.isNotEmpty && videos.isEmpty) {
+      throw const FileSystemException('選擇的檔案無法讀取，請重新選擇');
+    }
+    return videos;
   }
 }
 

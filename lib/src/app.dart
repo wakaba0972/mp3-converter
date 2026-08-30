@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'screens/converter_screen.dart';
+import 'screens/batch_converter_screen.dart';
 
 class Mp3ConverterApp extends StatelessWidget {
   const Mp3ConverterApp({super.key});
@@ -17,7 +17,7 @@ class Mp3ConverterApp extends StatelessWidget {
           border: OutlineInputBorder(),
         ),
       ),
-      home: const ConverterScreen(),
+      home: const BatchConverterScreen(),
     );
   }
 }

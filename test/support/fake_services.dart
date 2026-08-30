@@ -10,6 +10,14 @@ class FakePicker implements VideoPickerService {
   Future<SelectedVideo?> pickMp4() async => selection;
 }
 
+class FakeBatchPicker implements BatchVideoPickerService {
+  FakeBatchPicker([this.selections = const []]);
+  List<SelectedVideo> selections;
+
+  @override
+  Future<List<SelectedVideo>> pickMp4s() async => selections;
+}
+
 class FakeOutputPaths implements OutputPathService {
   @override
   Future<String> createOutputPath(String outputName) async =>
@@ -24,6 +32,8 @@ class FakeConverter implements AudioConversionService {
   ConversionResult result = const ConversionResult(ConversionOutcome.success);
   bool cancelled = false;
   AudioQuality? receivedQuality;
+  final List<String> convertedInputs = [];
+  final List<ConversionResult> queuedResults = [];
 
   @override
   Future<void> cancel() async {
@@ -39,8 +49,9 @@ class FakeConverter implements AudioConversionService {
     required void Function(Duration processed) onProgress,
   }) async {
     receivedQuality = quality;
+    convertedInputs.add(inputPath);
     onProgress(const Duration(seconds: 30));
-    return result;
+    return queuedResults.isEmpty ? result : queuedResults.removeAt(0);
   }
 
   @override
