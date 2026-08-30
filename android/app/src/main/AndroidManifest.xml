@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="mp3_converter"
+        android:label="MP4 轉 MP3"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
