@@ -2,10 +2,12 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:ffmpeg_kit_flutter_new_full/ffmpeg_kit.dart';
+import 'package:ffmpeg_kit_flutter_new_full/ffmpeg_kit_config.dart';
 import 'package:ffmpeg_kit_flutter_new_full/ffprobe_kit.dart';
 import 'package:ffmpeg_kit_flutter_new_full/return_code.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:media_store_plus/media_store_plus.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
@@ -18,8 +20,14 @@ import 'conversion_services.dart';
 
 class NativeVideoPickerService
     implements VideoPickerService, BatchVideoPickerService {
+  static const _channel = MethodChannel('mp3_converter/video_picker');
+
   @override
   Future<SelectedVideo?> pickMp4() async {
+    if (Platform.isAndroid) {
+      final videos = await _pickAndroidVideos(allowMultiple: false);
+      return videos.firstOrNull;
+    }
     final selected = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: supportedVideoExtensions.toList(),
@@ -42,6 +50,9 @@ class NativeVideoPickerService
 
   @override
   Future<List<SelectedVideo>> pickMp4s() async {
+    if (Platform.isAndroid) {
+      return _pickAndroidVideos(allowMultiple: true);
+    }
     final selectedFiles = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: supportedVideoExtensions.toList(),
@@ -62,6 +73,28 @@ class NativeVideoPickerService
     }
     if (selectedFiles.isNotEmpty && videos.isEmpty) {
       throw const FileSystemException('選擇的檔案無法讀取，請重新選擇');
+    }
+    return videos;
+  }
+
+  Future<List<SelectedVideo>> _pickAndroidVideos({
+    required bool allowMultiple,
+  }) async {
+    final raw = await _channel.invokeListMethod<Object?>('pickVideos', {
+      'allowMultiple': allowMultiple,
+    });
+    if (raw == null) return const [];
+    final videos = <SelectedVideo>[];
+    for (final value in raw) {
+      if (value is! Map) continue;
+      final uri = value['uri'] as String?;
+      final name = value['name'] as String?;
+      final size = value['size'] as int? ?? 0;
+      if (uri == null || name == null || !isSupportedVideoPath(name)) continue;
+      videos.add(SelectedVideo(path: uri, name: name, sizeBytes: size));
+    }
+    if (raw.isNotEmpty && videos.isEmpty) {
+      throw const FileSystemException('選擇的檔案格式不受支援，請重新選擇');
     }
     return videos;
   }
@@ -152,7 +185,8 @@ class FfmpegAudioConversionService implements AudioConversionService {
 
   @override
   Future<MediaDetails> inspect(String inputPath) async {
-    final session = await FFprobeKit.getMediaInformation(inputPath);
+    final resolvedInput = await _resolveInput(inputPath);
+    final session = await FFprobeKit.getMediaInformation(resolvedInput);
     final information = session.getMediaInformation();
     if (information == null) {
       throw const FormatException('無法讀取影片資訊，檔案可能已損壞');
@@ -176,12 +210,13 @@ class FfmpegAudioConversionService implements AudioConversionService {
     required Duration duration,
     required void Function(Duration processed) onProgress,
   }) async {
+    final resolvedInput = await _resolveInput(inputPath);
     final completer = Completer<ConversionResult>();
     final session = await FFmpegKit.executeWithArgumentsAsync(
       [
         '-y',
         '-i',
-        inputPath,
+        resolvedInput,
         '-vn',
         '-map',
         '0:a:0',
@@ -226,6 +261,15 @@ class FfmpegAudioConversionService implements AudioConversionService {
   Future<void> cancel() async {
     final sessionId = _activeSessionId;
     if (sessionId != null) await FFmpegKit.cancel(sessionId);
+  }
+
+  Future<String> _resolveInput(String inputPath) async {
+    if (!inputPath.startsWith('content://')) return inputPath;
+    final safInput = await FFmpegKitConfig.getSafParameterForRead(inputPath);
+    if (safInput == null || safInput.isEmpty) {
+      throw const FileSystemException('無法開啟選擇的影片，請重新選擇');
+    }
+    return safInput;
   }
 
   Future<void> _deletePartialOutput(String outputPath) async {

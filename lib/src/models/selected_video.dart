@@ -8,4 +8,6 @@ class SelectedVideo {
   final String path;
   final String name;
   final int sizeBytes;
+
+  bool get isContentUri => path.startsWith('content://');
 }

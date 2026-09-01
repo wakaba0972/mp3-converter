@@ -66,6 +66,24 @@ void main() {
     expect(actions.shared, controller.outputPath);
   });
 
+  test('content URI is kept as a reference until conversion starts', () async {
+    picker.selection = const SelectedVideo(
+      path: 'content://media/external/video/large',
+      name: 'large.mkv',
+      sizeBytes: 700 * 1024 * 1024,
+    );
+
+    await controller.selectVideo();
+
+    expect(controller.status, ConversionStatus.ready);
+    expect(converter.convertedInputs, isEmpty);
+
+    await controller.convert();
+
+    expect(controller.status, ConversionStatus.completed);
+    expect(converter.convertedInputs, ['content://media/external/video/large']);
+  });
+
   test('video without audio fails with a useful message', () async {
     converter.details = const MediaDetails(
       duration: Duration(seconds: 10),

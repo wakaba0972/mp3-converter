@@ -143,7 +143,7 @@ class BatchConverterController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      if (!await File(item.video.path).exists()) {
+      if (!item.video.isContentUri && !await File(item.video.path).exists()) {
         throw const FileSystemException('來源檔案已被移動或刪除');
       }
       final details = await _converter.inspect(item.video.path);

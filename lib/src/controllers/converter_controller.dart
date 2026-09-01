@@ -83,7 +83,7 @@ class ConverterController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      if (!await File(selected.path).exists()) {
+      if (!selected.isContentUri && !await File(selected.path).exists()) {
         throw const FileSystemException('來源檔案已被移動或刪除，請重新選擇');
       }
       final details = await _converter.inspect(selected.path);

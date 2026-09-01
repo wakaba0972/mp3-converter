@@ -1,9 +1,26 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mp3_converter/src/models/audio_quality.dart';
+import 'package:mp3_converter/src/models/selected_video.dart';
 import 'package:mp3_converter/src/models/conversion_status.dart';
 import 'package:mp3_converter/src/utils/formatters.dart';
 
 void main() {
+  test('selected videos identify streaming Android content URIs', () {
+    const streamed = SelectedVideo(
+      path: 'content://media/external/video/42',
+      name: 'large.mp4',
+      sizeBytes: 600 * 1024 * 1024,
+    );
+    const local = SelectedVideo(
+      path: '/storage/emulated/0/Movies/large.mp4',
+      name: 'large.mp4',
+      sizeBytes: 600 * 1024 * 1024,
+    );
+
+    expect(streamed.isContentUri, isTrue);
+    expect(local.isContentUri, isFalse);
+  });
+
   test('audio qualities expose the expected FFmpeg bitrates', () {
     expect(AudioQuality.values.map((quality) => quality.ffmpegBitrate), [
       '128k',
