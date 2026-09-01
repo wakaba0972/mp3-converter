@@ -80,6 +80,57 @@ void main() {
     expect(outputPaths.publishedPaths, hasLength(3));
   });
 
+  test(
+    'does not open the next content URI before the active item finishes',
+    () async {
+      final streamedVideos = List.generate(
+        3,
+        (index) => SelectedVideo(
+          path: 'content://media/external/video/${index + 1}',
+          name: 'large-${index + 1}.mp4',
+          sizeBytes: 600 * 1024 * 1024,
+        ),
+      );
+      final sequentialConverter = _SequentialProbeConverter();
+      controller.dispose();
+      controller = BatchConverterController(
+        picker: FakeBatchPicker(streamedVideos),
+        outputPaths: FakeOutputPaths(),
+        converter: sequentialConverter,
+        resultActions: FakeResultActions(),
+      );
+      await controller.addVideos();
+
+      final batchFuture = controller.startBatch();
+      await sequentialConverter.waitUntilStarted(0);
+
+      expect(sequentialConverter.events, [
+        'inspect:${streamedVideos[0].path}',
+        'convert:${streamedVideos[0].path}',
+      ]);
+
+      sequentialConverter.finish(0);
+      await sequentialConverter.waitUntilStarted(1);
+      expect(sequentialConverter.events, [
+        'inspect:${streamedVideos[0].path}',
+        'convert:${streamedVideos[0].path}',
+        'inspect:${streamedVideos[1].path}',
+        'convert:${streamedVideos[1].path}',
+      ]);
+
+      sequentialConverter.finish(1);
+      await sequentialConverter.waitUntilStarted(2);
+      sequentialConverter.finish(2);
+      await batchFuture;
+
+      expect(sequentialConverter.maximumConcurrentConversions, 1);
+      expect(
+        controller.items.map((item) => item.status),
+        everyElement(ConversionStatus.completed),
+      );
+    },
+  );
+
   test('continues with later files after one conversion fails', () async {
     converter.queuedResults.addAll([
       const ConversionResult(ConversionOutcome.success),
@@ -170,4 +221,48 @@ class _BlockingConverter implements AudioConversionService {
   @override
   Future<MediaDetails> inspect(String inputPath) async =>
       const MediaDetails(duration: Duration(minutes: 1), hasAudio: true);
+}
+
+class _SequentialProbeConverter implements AudioConversionService {
+  final events = <String>[];
+  final _started = List.generate(3, (_) => Completer<void>());
+  final _results = List.generate(3, (_) => Completer<ConversionResult>());
+  var _activeConversions = 0;
+  var maximumConcurrentConversions = 0;
+
+  Future<void> waitUntilStarted(int index) => _started[index].future;
+
+  void finish(int index) {
+    _results[index].complete(const ConversionResult(ConversionOutcome.success));
+  }
+
+  @override
+  Future<void> cancel() async {}
+
+  @override
+  Future<MediaDetails> inspect(String inputPath) async {
+    events.add('inspect:$inputPath');
+    return const MediaDetails(duration: Duration(minutes: 1), hasAudio: true);
+  }
+
+  @override
+  Future<ConversionResult> convert({
+    required String inputPath,
+    required String outputPath,
+    required AudioQuality quality,
+    required Duration duration,
+    required void Function(Duration processed) onProgress,
+  }) async {
+    final index = events.where((event) => event.startsWith('convert:')).length;
+    events.add('convert:$inputPath');
+    _activeConversions++;
+    maximumConcurrentConversions =
+        maximumConcurrentConversions < _activeConversions
+        ? _activeConversions
+        : maximumConcurrentConversions;
+    _started[index].complete();
+    final result = await _results[index].future;
+    _activeConversions--;
+    return result;
+  }
 }
